@@ -1,0 +1,15 @@
+# Raw data (used for problem generation, not needed in repo)
+data.json
+ratings.txt
+
+# Generation scripts
+gen_problems.py
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log

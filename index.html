@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#080808" />
+
+  <!-- SEO -->
+  <title>Sick169 — Elite LeetCode Problem Tracker</title>
+  <meta name="description" content="A curated list of 169 elite LeetCode problems (129 Hard, 40 Medium) from 2024 contests. Track your progress with a premium, minimalist interface." />
+  <meta name="keywords" content="leetcode, competitive programming, algorithms, problem tracker, grind169" />
+  <meta name="author" content="sickboydroid" />
+  <link rel="canonical" href="https://sickboydroid.github.io/Leetcode69/" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Sick169 — Elite LeetCode Problem Tracker" />
+  <meta property="og:description" content="169 curated LeetCode problems from 2024 contests. Track your grind." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sickboydroid.github.io/Leetcode69/" />
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Header ───────────────────────────── -->
+  <header class="header" role="banner">
+    <div class="header-top">
+
+      <div class="logo">
+        <h1 class="logo-title">Sick<span>169</span></h1>
+        <p class="logo-sub">169 elite problems · 2024+</p>
+      </div>
+
+      <div class="header-actions" role="toolbar" aria-label="Actions">
+
+        <button class="btn btn-icon" id="btn-import" title="Import progress from JSON" aria-label="Import progress">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7,10 12,15 17,10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </button>
+        <input type="file" id="import-input" accept=".json" style="display:none" aria-hidden="true" />
+
+        <button class="btn" id="btn-export" title="Export progress to JSON" aria-label="Export progress">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17,8 12,3 7,8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <span>Export</span>
+        </button>
+
+        <a class="btn"
+           href="https://github.com/sickboydroid/Leetcode69"
+           target="_blank"
+           rel="noopener noreferrer"
+           title="View on GitHub"
+           aria-label="View on GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Stats ─────────────────────────── -->
+    <div class="stats-bar" id="stats-bar" role="region" aria-label="Progress statistics">
+
+      <div class="stats-progress">
+        <div class="stats-main">
+          <div class="stats-percent" id="stat-percent" aria-live="polite" aria-label="Completion percentage">0%</div>
+          <div class="stats-label">complete</div>
+        </div>
+
+        <div class="stats-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Overall progress">
+          <div class="stats-track-fill" id="stats-track-fill"></div>
+        </div>
+
+        <div class="stats-chips" role="group" aria-label="Problem counts">
+          <div class="stat-chip hard" id="chip-hard" title="Hard problems solved">
+            <span class="dot"></span>
+            Hard
+            <span class="count" aria-label="Hard solved">0/129</span>
+          </div>
+          <div class="stat-chip medium" id="chip-medium" title="Medium problems solved">
+            <span class="dot"></span>
+            Medium
+            <span class="count" aria-label="Medium solved">0/40</span>
+          </div>
+          <div class="stat-chip starred" id="chip-starred" title="Starred problems">
+            <span class="dot"></span>
+            Starred
+            <span class="count" aria-label="Starred count">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-ring" aria-hidden="true">
+        <svg class="ring-svg" viewBox="0 0 72 72">
+          <circle class="ring-track" cx="36" cy="36" r="32"/>
+          <circle class="ring-fill" id="ring-fill" cx="36" cy="36" r="32"/>
+        </svg>
+        <div class="ring-text" id="ring-text">0<small>/169</small></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Filters ───────────────────────────── -->
+  <section aria-label="Filters">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="search"
+             id="search-input"
+             placeholder="Search problems… (or press /)"
+             autocomplete="off"
+             spellcheck="false"
+             aria-label="Search problems" />
+    </div>
+
+    <div class="filters-row" role="group" aria-label="Filter options">
+
+      <button class="toggle-btn" id="btn-hide-solved" aria-pressed="false" title="Hide solved problems">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+          <line x1="1" y1="1" x2="23" y2="23"/>
+        </svg>
+        Hide Solved
+      </button>
+
+      <button class="toggle-btn" id="btn-show-starred" aria-pressed="false" title="Show only starred problems">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+        </svg>
+        Starred
+      </button>
+
+      <div class="filter-sep" aria-hidden="true"></div>
+
+      <div class="diff-filter" role="group" aria-label="Difficulty filter">
+        <button class="diff-btn active" data-diff="all"    aria-pressed="true">All</button>
+        <button class="diff-btn"        data-diff="Hard"   aria-pressed="false">Hard</button>
+        <button class="diff-btn"        data-diff="Medium" aria-pressed="false">Medium</button>
+      </div>
+
+      <div class="filter-sep" aria-hidden="true"></div>
+
+      <button class="toggle-btn" id="btn-global-rating" title="Toggle ratings for all problems" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+        </svg>
+        Ratings
+      </button>
+
+      <span class="filter-count" id="filter-count" aria-live="polite">169 problems</span>
+    </div>
+  </section>
+
+  <!-- ── Problems List ─────────────────────── -->
+  <main>
+    <div class="list-header" role="row" aria-hidden="true">
+      <span>#</span>
+      <span>Problem</span>
+      <span>Rating</span>
+      <span>★</span>
+      <span>Done</span>
+    </div>
+
+    <div class="problems-list"
+         id="problems-list"
+         role="table"
+         aria-label="Problem list"
+         aria-rowcount="169">
+      <!-- Rendered by app.js -->
+    </div>
+  </main>
+
+  <!-- ── Keyboard Hints ────────────────────── -->
+  <div class="kbd-hint" role="note" aria-label="Keyboard shortcuts">
+    <div class="kbd-item"><kbd>j</kbd><kbd>k</kbd> navigate</div>
+    <div class="kbd-item"><kbd>↵</kbd> open</div>
+    <div class="kbd-item"><kbd>Space</kbd> solve</div>
+    <div class="kbd-item"><kbd>s</kbd> star</div>
+    <div class="kbd-item"><kbd>r</kbd> rating</div>
+    <div class="kbd-item"><kbd>/</kbd> search</div>
+    <div class="kbd-item"><kbd>Esc</kbd> clear</div>
+  </div>
+
+  <!-- ── Footer ────────────────────────────── -->
+  <footer class="footer" role="contentinfo">
+    <p class="footer-text">
+      <strong>Sick169</strong> — 169 elite problems, all from 2024 contests.
+      Ratings sourced from
+      <a href="https://github.com/zerotrac/leetcode_problem_rating" target="_blank" rel="noopener noreferrer">zerotrac/leetcode_problem_rating</a>.
+    </p>
+    <p class="footer-text">
+      <a href="https://github.com/sickboydroid/Leetcode69" target="_blank" rel="noopener noreferrer">GitHub</a>
+      &nbsp;·&nbsp;
+      <a href="PROBLEMS.md" target="_blank">Update Problems</a>
+    </p>
+  </footer>
+
+</div><!-- /#app -->
+
+<!-- ── Toast container ───────────────────── -->
+<div class="toast-container" id="toast-container" aria-live="assertive" aria-atomic="true" role="status"></div>
+
+<!-- ── Scripts ───────────────────────────── -->
+<script src="problems.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
