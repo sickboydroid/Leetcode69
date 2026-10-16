@@ -380,6 +380,128 @@ function renderList() {
   }
 }
 
+/* ─── Surgical Patch Helpers ──────────────── */
+
+/**
+ * Update filter count label from current rendered card count.
+ */
+function updateFilterCount() {
+  const count = elList.querySelectorAll('.problem-card').length;
+  elFilterCount.textContent = `${count} problem${count !== 1 ? 's' : ''}`;
+}
+
+/**
+ * Quietly remove a card with a slide-out animation and update state.
+ */
+function fadeOutCard(card, id) {
+  // Remove from filteredList so keyboard nav stays consistent
+  const idx = filteredList.findIndex(p => p.id === id);
+  if (idx !== -1) {
+    filteredList.splice(idx, 1);
+    if (focusedIndex >= filteredList.length) focusedIndex = filteredList.length - 1;
+  }
+  card.style.transition = 'opacity 0.25s ease, transform 0.25s ease, max-height 0.3s ease 0.15s, margin 0.3s ease 0.15s, padding 0.3s ease 0.15s';
+  card.style.opacity = '0';
+  card.style.transform = 'translateX(-10px)';
+  card.style.overflow = 'hidden';
+  setTimeout(() => {
+    card.style.maxHeight = card.offsetHeight + 'px';
+    requestAnimationFrame(() => {
+      card.style.maxHeight = '0';
+      card.style.marginBottom = '0';
+      card.style.paddingTop = '0';
+      card.style.paddingBottom = '0';
+    });
+  }, 20);
+  setTimeout(() => { card.remove(); updateFilterCount(); }, 450);
+}
+
+/**
+ * Patch only the solved state of a single card in-place.
+ */
+function patchCardSolved(id) {
+  const card = elList.querySelector(`[data-id="${id}"]`);
+  if (!card) return;
+  const isSolved = state.solved.has(id);
+
+  card.classList.toggle('solved', isSolved);
+  card.setAttribute('aria-label', card.getAttribute('aria-label')
+    .replace(/, solved$/, '') + (isSolved ? ', solved' : ''));
+
+  const checkBtn = card.querySelector('.check-btn');
+  checkBtn.classList.toggle('solved', isSolved);
+  checkBtn.title = isSolved ? 'Mark unsolved' : 'Mark solved';
+  checkBtn.setAttribute('aria-label', isSolved ? 'Mark as unsolved' : 'Mark as solved');
+
+  // If hideSolved filter is active and we just solved it → fade out
+  if (state.hideSolved && isSolved) {
+    fadeOutCard(card, id);
+  }
+}
+
+/**
+ * Patch only the star state of a single card in-place.
+ */
+function patchCardStar(id) {
+  const card = elList.querySelector(`[data-id="${id}"]`);
+  if (!card) return;
+  const isStarred = state.starred.has(id);
+
+  card.classList.toggle('starred', isStarred);
+
+  const starBtn = card.querySelector('.star-btn');
+  starBtn.classList.toggle('starred', isStarred);
+  starBtn.querySelector('svg').setAttribute('fill', isStarred ? 'currentColor' : 'none');
+  starBtn.title = isStarred ? 'Unstar' : 'Star';
+  starBtn.setAttribute('aria-label', isStarred ? 'Remove star' : 'Add star');
+
+  // If showStarred filter is active and we just unstarred → fade out
+  if (state.showStarred && !isStarred) {
+    fadeOutCard(card, id);
+  }
+}
+
+/**
+ * Patch only the rating visibility of a single card in-place.
+ */
+function patchCardRating(id) {
+  const card = elList.querySelector(`[data-id="${id}"]`);
+  if (!card) return;
+  const p = PROBLEMS.find(prob => prob.id === id);
+  const ratingVis = state.globalRating || state.visibleRatings.has(id);
+  const btn = card.querySelector('.rating-btn');
+  if (!btn) return;
+  btn.classList.toggle('visible', ratingVis);
+  btn.title = ratingVis ? `Rating: ${p.rating}` : 'Reveal rating';
+  btn.innerHTML = ratingVis ? `<span class="rating-val">${p.rating}</span>` : '···';
+}
+
+/**
+ * Patch rating visibility on every currently rendered card (global toggle).
+ */
+function patchAllRatings() {
+  elList.querySelectorAll('.problem-card').forEach(card => {
+    patchCardRating(parseInt(card.dataset.id));
+  });
+}
+
+/**
+ * Move keyboard focus to focusedIndex without full re-render.
+ */
+function patchFocus(prevIndex) {
+  if (prevIndex >= 0) {
+    const prev = elList.querySelector(`[data-index="${prevIndex}"]`);
+    if (prev) prev.classList.remove('focused');
+  }
+  if (focusedIndex >= 0) {
+    const next = elList.querySelector(`[data-index="${focusedIndex}"]`);
+    if (next) {
+      next.classList.add('focused');
+      next.scrollIntoView({ block: 'nearest' });
+    }
+  }
+}
+
 /* ─── Toggle Handlers ─────────────────────── */
 function toggleSolved(id, sourceEl) {
   const wasSolved = state.solved.has(id);
@@ -392,8 +514,8 @@ function toggleSolved(id, sourceEl) {
     if (sourceEl) spawnBurst(sourceEl, 'check');
   }
   saveState();
-  renderStats();
-  renderList();
+  renderStats();      // update stats bar only
+  patchCardSolved(id); // update only this card
 }
 
 function toggleStar(id, sourceEl) {
@@ -407,8 +529,8 @@ function toggleStar(id, sourceEl) {
     if (sourceEl) spawnBurst(sourceEl, 'star');
   }
   saveState();
-  renderStats();
-  renderList();
+  renderStats();      // update starred chip count
+  patchCardStar(id);  // update only this card
 }
 
 function toggleRating(id) {
@@ -419,7 +541,7 @@ function toggleRating(id) {
   }
   playClick();
   saveState();
-  renderList();
+  patchCardRating(id); // update only this card's rating button
 }
 
 /* ─── Event Delegation ────────────────────── */
@@ -452,13 +574,14 @@ function setupListEvents() {
       return;
     }
 
-    // Problem title (open in new tab) — handled by <a> naturally, but update focus
+    // Problem title — update focus only (no re-render)
     const card = e.target.closest('.problem-card');
     if (card) {
       const idx = parseInt(card.dataset.index);
       if (!isNaN(idx)) {
+        const prev = focusedIndex;
         focusedIndex = idx;
-        renderList();
+        patchFocus(prev);
       }
     }
   });
@@ -477,18 +600,22 @@ function setupKeyboard() {
 
     switch (e.key) {
       case 'j':
-      case 'ArrowDown':
+      case 'ArrowDown': {
         e.preventDefault();
+        const prev = focusedIndex;
         focusedIndex = Math.min(focusedIndex + 1, count - 1);
-        renderList();
+        patchFocus(prev);
         break;
+      }
 
       case 'k':
-      case 'ArrowUp':
+      case 'ArrowUp': {
         e.preventDefault();
+        const prev = focusedIndex;
         focusedIndex = Math.max(focusedIndex - 1, 0);
-        renderList();
+        patchFocus(prev);
         break;
+      }
 
       case ' ':
       case 'Enter':
@@ -496,12 +623,10 @@ function setupKeyboard() {
           e.preventDefault();
           const p = filteredList[focusedIndex];
           if (e.key === 'Enter') {
-            // Open problem
             window.open(`https://leetcode.com/problems/${p.titleSlug}/`, '_blank');
           } else {
-            // Space = toggle solved
-            const card = elList.querySelector(`[data-index="${focusedIndex}"] .check-btn`);
-            toggleSolved(p.id, card);
+            const checkEl = elList.querySelector(`[data-index="${focusedIndex}"] .check-btn`);
+            toggleSolved(p.id, checkEl);
           }
         }
         break;
@@ -510,8 +635,8 @@ function setupKeyboard() {
         if (focusedIndex >= 0 && focusedIndex < count) {
           e.preventDefault();
           const p = filteredList[focusedIndex];
-          const card = elList.querySelector(`[data-index="${focusedIndex}"] .star-btn`);
-          toggleStar(p.id, card);
+          const starEl = elList.querySelector(`[data-index="${focusedIndex}"] .star-btn`);
+          toggleStar(p.id, starEl);
         }
         break;
 
@@ -528,10 +653,12 @@ function setupKeyboard() {
         $('#search-input').focus();
         break;
 
-      case 'Escape':
+      case 'Escape': {
+        const prev = focusedIndex;
         focusedIndex = -1;
-        renderList();
+        patchFocus(prev);
         break;
+      }
     }
   });
 }
@@ -571,7 +698,7 @@ function setupFilters() {
     });
   });
 
-  // Global rating toggle
+  // Global rating toggle — patch all visible cards, no full re-render
   $('#btn-global-rating').addEventListener('click', () => {
     state.globalRating = !state.globalRating;
     playClick();
@@ -579,7 +706,7 @@ function setupFilters() {
     btn.classList.toggle('active', state.globalRating);
     btn.title = state.globalRating ? 'Hide all ratings' : 'Show all ratings';
     saveState();
-    renderList();
+    patchAllRatings();
   });
 
   // Search
